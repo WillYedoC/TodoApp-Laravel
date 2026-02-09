@@ -11,9 +11,13 @@ use Illuminate\Support\Facades\Log;
 
 class TaskController extends Controller
 {
+    public function create(){
+        return redirect()->route('tasks.index');
+        }
     public function index()
     {
         $tasks = Task::with(['category', 'tags'])->paginate(10);
+        Log::info($tasks);
         $categories = Category::all();
         $tags = Tag::all();
         

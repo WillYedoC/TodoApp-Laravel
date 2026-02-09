@@ -7,14 +7,12 @@ use Illuminate\Http\Request;
 
 class TagController extends Controller
 {
-    // Listar todas las etiquetas
     public function index()
     {
         $tags = Tag::withCount('tasks')->with('tasks')->paginate(10);
         return view('tags.index', compact('tags'));
     }
 
-    // Guardar nueva etiqueta
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -27,20 +25,17 @@ class TagController extends Controller
             ->with('success', 'Etiqueta creada exitosamente');
     }
 
-    // Mostrar una etiqueta
     public function show(Tag $tag)
     {
         $tag->load('tasks');
         return view('tags.show', compact('tag'));
     }
 
-    // Mostrar formulario de edición
     public function edit(Tag $tag)
     {
         return view('tags.edit', compact('tag'));
     }
 
-    // Actualizar etiqueta
     public function update(Request $request, Tag $tag)
     {
         $validated = $request->validate([
@@ -53,7 +48,6 @@ class TagController extends Controller
             ->with('success', 'Etiqueta actualizada exitosamente');
     }
 
-    // Eliminar etiqueta
     public function destroy(Tag $tag)
     {
         $tag->delete();
