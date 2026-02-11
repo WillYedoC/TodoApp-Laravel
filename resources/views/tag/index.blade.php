@@ -3,22 +3,15 @@
 @section('content')
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Categorías</h1>
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createCategoryModal">
-            <i class="bi bi-plus-circle"></i> Nueva Categoría
+        <h1>Etiquetas</h1>
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createTagModal">
+            <i class="bi bi-plus-circle"></i> Nueva Etiqueta
         </button>
     </div>
 
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show">
             {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
-    @if(session('error'))
-        <div class="alert alert-danger alert-dismissible fade show">
-            {{ session('error') }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
@@ -35,33 +28,33 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @forelse($categories as $category)
+                    @forelse($tags as $tag)
                     <tr>
-                        <td>{{ $category->id }}</td>
-                        <td>{{ $category->name }}</td>
-                        <td><span class="badge bg-primary">{{ $category->tasks_count }}</span></td>
+                        <td>{{ $tag->id }}</td>
+                        <td><span class="badge bg-secondary">{{ $tag->name }}</span></td>
+                        <td><span class="badge bg-primary">{{ $tag->tasks_count }}</span></td>
                         <td>
                             <button type="button" class="btn btn-sm btn-info" 
-                                    data-bs-toggle="modal" data-bs-target="#showCategoryModal{{ $category->id }}">
+                                    data-bs-toggle="modal" data-bs-target="#showTagModal{{ $tag->id }}">
                                 <i class="bi bi-eye"></i>
                             </button>
                             <button type="button" class="btn btn-sm btn-warning" 
-                                    data-bs-toggle="modal" data-bs-target="#editCategoryModal{{ $category->id }}">
+                                    data-bs-toggle="modal" data-bs-target="#editTagModal{{ $tag->id }}">
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <button type="button" class="btn btn-sm btn-danger" 
-                                    data-bs-toggle="modal" data-bs-target="#deleteCategoryModal{{ $category->id }}">
+                                    data-bs-toggle="modal" data-bs-target="#deleteTagModal{{ $tag->id }}">
                                 <i class="bi bi-trash"></i>
                             </button>
                         </td>
                     </tr>
 
-                    @include('categories.modals.show', ['category' => $category])
-                    @include('categories.modals.edit', ['category' => $category])
-                    @include('categories.modals.delete', ['category' => $category])
+                    @include('tag.modals.show', ['tag' => $tag])
+                    @include('tag.modals.edit', ['tag' => $tag])
+                    @include('tag.modals.delete', ['tag' => $tag])
                     @empty
                     <tr>
-                        <td colspan="4" class="text-center">No hay categorías registradas</td>
+                        <td colspan="4" class="text-center">No hay etiquetas registradas</td>
                     </tr>
                     @endforelse
                 </tbody>
@@ -70,9 +63,9 @@
     </div>
 
     <div class="mt-3">
-        {{ $categories->links() }}
+        {{ $tags->links() }}
     </div>
 </div>
 
-@include('categories.modals.create')
+@include('tag.modals.create')
 @endsection

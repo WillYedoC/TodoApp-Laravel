@@ -2,7 +2,7 @@
 <div class="modal fade" id="createTagModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="{{ route('tags.store') }}" method="POST">
+            <form action="{{ route('tag.store') }}" method="POST">
                 @csrf
                 <div class="modal-header">
                     <h5 class="modal-title">Nueva Etiqueta</h5>

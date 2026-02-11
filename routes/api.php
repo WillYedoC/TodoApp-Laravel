@@ -14,7 +14,6 @@ Route::get('/user', function (Request $request) {
 Route::get('/', function () {
     return response()->json([
         'message' => 'API de Gestión de Tareas',
-        'version' => '1.0.0',
         'endpoints' => [
             'tasks' => [
                 'index' => 'GET /api/tasks',

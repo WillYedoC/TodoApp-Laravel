@@ -10,7 +10,7 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="{{ route('tasks.index') }}">
+            <a class="navbar-brand" href="{{ route('task.index') }}">
                 <i class="bi bi-check2-square"></i> Gestor de Tareas
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -19,13 +19,13 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('tasks.index') }}">Tareas</a>
+                        <a class="nav-link" href="{{ route('task.index') }}">Tareas</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('categories.index') }}">Categorías</a>
+                        <a class="nav-link" href="{{ route('category.index') }}">Categorías</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ route('tags.index') }}">Etiquetas</a>
+                        <a class="nav-link" href="{{ route('tag.index') }}">Etiquetas</a>
                     </li>
                 </ul>
             </div>

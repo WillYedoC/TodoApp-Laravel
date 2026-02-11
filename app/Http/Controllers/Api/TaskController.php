@@ -16,8 +16,8 @@ class TaskController extends Controller
     public function index(): JsonResponse
     {
         $tasks = Task::with(['category', 'tags'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+            ->latest() 
+            ->paginate(10); 
 
         return response()->json([
             'success' => true,
@@ -64,16 +64,9 @@ class TaskController extends Controller
      * Mostrar una tarea específica
      * GET /api/tasks/{id}
      */
-    public function show($id): JsonResponse
+    public function show(Task $task): JsonResponse
     {
-        $task = Task::with(['category', 'tags'])->find($id);
-
-        if (!$task) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Tarea no encontrada'
-            ], 404);
-        }
+        $task->load(['category', 'tags']);
 
         return response()->json([
             'success' => true,
@@ -83,18 +76,10 @@ class TaskController extends Controller
 
     /**
      * Actualizar una tarea
-     * PUT /api/tasks/{id}
+     * PUT/PATCH /api/tasks/{id}
      */
-    public function update(Request $request, $id): JsonResponse
+    public function update(Request $request, Task $task): JsonResponse
     {
-        $task = Task::find($id);
-
-        if (!$task) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Tarea no encontrada'
-            ], 404);
-        }
 
         $validated = $request->validate([
             'title' => 'sometimes|required|string|max:255',
@@ -129,17 +114,9 @@ class TaskController extends Controller
      * Eliminar una tarea
      * DELETE /api/tasks/{id}
      */
-    public function destroy($id): JsonResponse
+    public function destroy(Task $task): JsonResponse
     {
-        $task = Task::find($id);
-
-        if (!$task) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Tarea no encontrada'
-            ], 404);
-        }
-
+        
         $task->delete();
 
         return response()->json([

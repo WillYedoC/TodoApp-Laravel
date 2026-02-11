@@ -1,11 +1,10 @@
 <?php
 
-namespace App\Http\Controllers\Api;
+namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Category;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
@@ -15,7 +14,10 @@ class CategoryController extends Controller
      */
     public function index(): JsonResponse
     {
-        $categories = Category::withCount('tasks')->get();
+
+        $categories = Category::withCount('tasks')
+            ->latest() 
+            ->paginate(10);
 
         return response()->json([
             'success' => true,
@@ -46,16 +48,9 @@ class CategoryController extends Controller
      * Mostrar una categoría específica
      * GET /api/categories/{id}
      */
-    public function show($id): JsonResponse
+    public function show(Category $category): JsonResponse
     {
-        $category = Category::withCount('tasks')->find($id);
-
-        if (!$category) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Categoría no encontrada'
-            ], 404);
-        }
+        $category->load('tasks');
 
         return response()->json([
             'success' => true,
@@ -67,19 +62,10 @@ class CategoryController extends Controller
      * Actualizar una categoría
      * PUT /api/categories/{id}
      */
-    public function update(Request $request, $id): JsonResponse
+    public function update(Request $request, Category $category): JsonResponse
     {
-        $category = Category::find($id);
-
-        if (!$category) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Categoría no encontrada'
-            ], 404);
-        }
-
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name,' . $id
+            'name' => 'required|string|max:255|unique:categories,name,' . $category->id
         ]);
 
         $category->update($validated);
@@ -95,18 +81,9 @@ class CategoryController extends Controller
      * Eliminar una categoría
      * DELETE /api/categories/{id}
      */
-    public function destroy($id): JsonResponse
+    public function destroy(Category $category): JsonResponse
     {
-        $category = Category::find($id);
-
-        if (!$category) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Categoría no encontrada'
-            ], 404);
-        }
-
-        if ($category->tasks()->count() > 0) {
+        if ($category->tasks()->exists()) {
             return response()->json([
                 'success' => false,
                 'message' => 'No se puede eliminar una categoría con tareas asociadas'

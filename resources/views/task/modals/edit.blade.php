@@ -2,7 +2,7 @@
 <div class="modal fade" id="editTaskModal{{ $task->id }}" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
-            <form action="{{ route('tasks.update', $task) }}" method="POST">
+            <form action="{{ route('task.update', $task) }}" method="POST">
                 @csrf
                 @method('PUT')
                 <div class="modal-header">

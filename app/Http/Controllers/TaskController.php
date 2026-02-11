@@ -12,16 +12,15 @@ use Illuminate\Support\Facades\Log;
 class TaskController extends Controller
 {
     public function create(){
-        return redirect()->route('tasks.index');
+        return redirect()->route('task.index');
         }
     public function index()
     {
-        $tasks = Task::with(['category', 'tags'])->paginate(10);
-        Log::info($tasks);
+        $tasks = Task::with(['category', 'tags'])->orderBy('created_at', 'desc')->paginate(10);
         $categories = Category::all();
         $tags = Tag::all();
-        
-        return view('tasks.index', compact('tasks', 'categories', 'tags'));
+
+        return view('task.index', compact('tasks', 'categories', 'tags'));
     }
 
     public function store(Request $request)
@@ -46,7 +45,7 @@ class TaskController extends Controller
             $task->tags()->attach($validated['tags']);
         }
 
-        return redirect()->route('tasks.index')
+        return redirect()->route('task.index')
             ->with('success', 'Tarea creada exitosamente');
     }
 
@@ -76,14 +75,14 @@ class TaskController extends Controller
             $task->tags()->detach();
         }
 
-        return redirect()->route('tasks.index')
+        return redirect()->route('task.index')
             ->with('success', 'Tarea actualizada exitosamente');
     }
 
     public function destroy(Task $task)
     {
         $task->delete();
-        return redirect()->route('tasks.index')
+        return redirect()->route('task.index')
             ->with('success', 'Tarea eliminada exitosamente');
     }
 }

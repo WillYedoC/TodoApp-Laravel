@@ -9,6 +9,6 @@ Route::get('/', function () {
     return redirect()->route('tasks.index');
 });
 
-Route::resource('tasks', TaskController::class);
-Route::resource('categories', CategoryController::class);
-Route::resource('tags', TagController::class);
+Route::resource('task', TaskController::class);
+Route::resource('category', CategoryController::class);
+Route::resource('tag', TagController::class);

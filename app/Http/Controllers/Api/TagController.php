@@ -15,7 +15,9 @@ class TagController extends Controller
      */
     public function index(): JsonResponse
     {
-        $tags = Tag::withCount('tasks')->get();
+        $tags = Tag::withCount('tasks')
+            ->latest()
+            ->get();
 
         return response()->json([
             'success' => true,
@@ -46,16 +48,9 @@ class TagController extends Controller
      * Mostrar una etiqueta específica
      * GET /api/tags/{id}
      */
-    public function show($id): JsonResponse
+    public function show(Tag $tag): JsonResponse
     {
-        $tag = Tag::withCount('tasks')->find($id);
-
-        if (!$tag) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Etiqueta no encontrada'
-            ], 404);
-        }
+        $tag->load('tasks');
 
         return response()->json([
             'success' => true,
@@ -67,19 +62,10 @@ class TagController extends Controller
      * Actualizar una etiqueta
      * PUT /api/tags/{id}
      */
-    public function update(Request $request, $id): JsonResponse
+    public function update(Request $request, Tag $tag): JsonResponse
     {
-        $tag = Tag::find($id);
-
-        if (!$tag) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Etiqueta no encontrada'
-            ], 404);
-        }
-
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:tags,name,' . $id
+            'name' => 'required|string|max:255|unique:tags,name,' . $tag->id
         ]);
 
         $tag->update($validated);
@@ -95,17 +81,11 @@ class TagController extends Controller
      * Eliminar una etiqueta
      * DELETE /api/tags/{id}
      */
-    public function destroy($id): JsonResponse
+    public function destroy(Tag $tag): JsonResponse
     {
-        $tag = Tag::find($id);
-
-        if (!$tag) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Etiqueta no encontrada'
-            ], 404);
-        }
-
+        // Desasociar todas las tareas antes de eliminar
+        $tag->tasks()->detach();
+        
         $tag->delete();
 
         return response()->json([

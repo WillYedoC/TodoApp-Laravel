@@ -2,7 +2,7 @@
 <div class="modal fade" id="createCategoryModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="{{ route('categories.store') }}" method="POST">
+            <form action="{{ route('category.store') }}" method="POST">
                 @csrf
                 <div class="modal-header">
                     <h5 class="modal-title">Nueva Categoría</h5>

@@ -9,8 +9,13 @@ class CategoryController extends Controller
 {
     public function index()
     {
-        $categories = Category::withCount('tasks')->with('tasks')->paginate(10);
-        return view('categories.index', compact('categories'));
+        $categories = Category::withCount('tasks')->with('tasks')->orderBy('created_at', 'desc')->paginate(10);
+        return view('category.index', compact('categories'));
+    }
+
+    public function create()
+    {
+        return view('category.create');
     }
 
     public function store(Request $request)
@@ -21,19 +26,19 @@ class CategoryController extends Controller
 
         Category::create($validated);
 
-        return redirect()->route('categories.index')
+        return redirect()->route('category.index')
             ->with('success', 'Categoría creada exitosamente');
     }
 
     public function show(Category $category)
     {
         $category->load('tasks');
-        return view('categories.show', compact('category'));
+        return view('category.show', compact('category'));
     }
 
     public function edit(Category $category)
     {
-        return view('categories.edit', compact('category'));
+        return view('category.edit', compact('category'));
     }
 
     public function update(Request $request, Category $category)
@@ -44,20 +49,20 @@ class CategoryController extends Controller
 
         $category->update($validated);
 
-        return redirect()->route('categories.index')
+        return redirect()->route('category.index')
             ->with('success', 'Categoría actualizada exitosamente');
     }
 
     public function destroy(Category $category)
     {
         if ($category->tasks()->count() > 0) {
-            return redirect()->route('categories.index')
+            return redirect()->route('category.index')
                 ->with('error', 'No se puede eliminar una categoría con tareas asociadas');
         }
 
         $category->delete();
         
-        return redirect()->route('categories.index')
+        return redirect()->route('category.index')
             ->with('success', 'Categoría eliminada exitosamente');
     }
 }

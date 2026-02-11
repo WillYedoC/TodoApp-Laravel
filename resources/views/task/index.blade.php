@@ -62,7 +62,7 @@
                                 <i class="bi bi-eye"></i>
                             </button>
                             <button type="button" class="btn btn-sm btn-warning" 
-                                    data-bs-toggle="modal" data-bs-target="#ph{{ $task->id }}">
+                                    data-bs-toggle="modal" data-bs-target="#editTaskModal{{ $task->id }}">
                                 <i class="bi bi-pencil"></i>
                             </button>
                             <button type="button" class="btn btn-sm btn-danger" 
@@ -72,9 +72,9 @@
                         </td>
                     </tr>
 
-                    @include('tasks.modals.show', ['task' => $task])
-                    @include('tasks.modals.edit', ['task' => $task, 'categories' => $categories, 'tags' => $tags])
-                    @include('tasks.modals.delete', ['task' => $task])
+                    @include('task.modals.show', ['task' => $task])
+                    @include('task.modals.edit', ['task' => $task, 'categories' => $categories, 'tags' => $tags])
+                    @include('task.modals.delete', ['task' => $task])
 
                     @empty
                     <tr>
@@ -91,5 +91,5 @@
     </div>
 </div>
 
-@include('tasks.modals.create', ['categories' => $categories, 'tags' => $tags])
+@include('task.modals.create', ['categories' => $categories, 'tags' => $tags])
 @endsection

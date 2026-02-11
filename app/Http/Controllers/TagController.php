@@ -9,8 +9,13 @@ class TagController extends Controller
 {
     public function index()
     {
-        $tags = Tag::withCount('tasks')->with('tasks')->paginate(10);
-        return view('tags.index', compact('tags'));
+        $tags = Tag::withCount('tasks')->with('tasks')->orderBy('created_at', 'desc')->paginate(10);
+        return view('tag.index', compact('tags'));
+    }
+
+    public function create()
+    {
+        return view('tag.create');
     }
 
     public function store(Request $request)
@@ -21,19 +26,19 @@ class TagController extends Controller
 
         Tag::create($validated);
 
-        return redirect()->route('tags.index')
+        return redirect()->route('tag.index')
             ->with('success', 'Etiqueta creada exitosamente');
     }
 
     public function show(Tag $tag)
     {
         $tag->load('tasks');
-        return view('tags.show', compact('tag'));
+        return view('tag.show', compact('tag'));
     }
 
     public function edit(Tag $tag)
     {
-        return view('tags.edit', compact('tag'));
+        return view('tag.edit', compact('tag'));
     }
 
     public function update(Request $request, Tag $tag)
@@ -44,7 +49,7 @@ class TagController extends Controller
 
         $tag->update($validated);
 
-        return redirect()->route('tags.index')
+        return redirect()->route('tag.index')
             ->with('success', 'Etiqueta actualizada exitosamente');
     }
 
@@ -52,7 +57,7 @@ class TagController extends Controller
     {
         $tag->delete();
         
-        return redirect()->route('tags.index')
+        return redirect()->route('tag.index')
             ->with('success', 'Etiqueta eliminada exitosamente');
     }
 }
