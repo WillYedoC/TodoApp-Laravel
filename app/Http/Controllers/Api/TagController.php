@@ -6,23 +6,21 @@ use App\Http\Controllers\Controller;
 use App\Models\Tag;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\Rule;
 
 class TagController extends Controller
 {
     /**
-     * Listar todas las etiquetas
+     * Listar todas las etiquetas del usuario autenticado
      * GET /api/tags
      */
     public function index(): JsonResponse
     {
         $tags = Tag::withCount('tasks')
             ->latest()
-            ->get();
+            ->paginate(10);
 
-        return response()->json([
-            'success' => true,
-            'data' => $tags
-        ]);
+        return response()->json($tags);
     }
 
     /**
@@ -32,10 +30,21 @@ class TagController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:tags,name'
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('tags', 'name')->where(function ($query) {
+                    $query->where('user_id', auth()->id());
+                })
+            ]
+        ], [
+            'name.required' => 'El nombre de la etiqueta es obligatorio',
+            'name.unique' => 'Ya tienes una etiqueta con este nombre',
+            'name.max' => 'El nombre no puede exceder 255 caracteres'
         ]);
 
-        $tag = Tag::create($validated);
+        $tag = auth()->user()->tags()->create($validated);
 
         return response()->json([
             'success' => true,
@@ -46,7 +55,7 @@ class TagController extends Controller
 
     /**
      * Mostrar una etiqueta específica
-     * GET /api/tags/{id}
+     * GET /api/tags/{tag}
      */
     public function show(Tag $tag): JsonResponse
     {
@@ -60,12 +69,25 @@ class TagController extends Controller
 
     /**
      * Actualizar una etiqueta
-     * PUT /api/tags/{id}
+     * PUT/PATCH /api/tags/{tag}
      */
     public function update(Request $request, Tag $tag): JsonResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:tags,name,' . $tag->id
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('tags', 'name')
+                    ->where(function ($query) {
+                        $query->where('user_id', auth()->id());
+                    })
+                    ->ignore($tag->id)
+            ]
+        ], [
+            'name.required' => 'El nombre de la etiqueta es obligatorio',
+            'name.unique' => 'Ya tienes una etiqueta con este nombre',
+            'name.max' => 'El nombre no puede exceder 255 caracteres'
         ]);
 
         $tag->update($validated);
@@ -79,13 +101,11 @@ class TagController extends Controller
 
     /**
      * Eliminar una etiqueta
-     * DELETE /api/tags/{id}
+     * DELETE /api/tags/{tag}
      */
     public function destroy(Tag $tag): JsonResponse
     {
-        // Desasociar todas las tareas antes de eliminar
         $tag->tasks()->detach();
-        
         $tag->delete();
 
         return response()->json([

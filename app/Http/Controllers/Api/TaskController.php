@@ -6,23 +6,22 @@ use App\Http\Controllers\Controller;
 use App\Models\Task;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Log;
 
 class TaskController extends Controller
 {
     /**
-     * Listar todas las tareas
+     * Listar todas las tareas del usuario autenticado
      * GET /api/tasks
      */
     public function index(): JsonResponse
     {
         $tasks = Task::with(['category', 'tags'])
-            ->latest() 
-            ->paginate(10); 
+            ->latest()
+            ->paginate(10);
 
-        return response()->json([
-            'success' => true,
-            'data' => $tasks
-        ]);
+        return response()->json($tasks);
     }
 
     /**
@@ -34,20 +33,38 @@ class TaskController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'category_id' => 'required|exists:categories,id',
+            'category_id' => [
+                'required',
+                'integer',
+                Rule::exists('categories', 'id')->where(function ($query) {
+                    $query->where('user_id', auth()->id());
+                })
+            ],
             'tags' => 'nullable|array',
-            'tags.*' => 'exists:tags,id',
+            'tags.*' => [
+                'integer',
+                Rule::exists('tags', 'id')->where(function ($query) {
+                    $query->where('user_id', auth()->id());
+                })
+            ],
             'is_completed' => 'boolean'
+        ], [
+            'title.required' => 'El título es obligatorio',
+            'title.max' => 'El título no puede exceder 255 caracteres',
+            'category_id.required' => 'La categoría es obligatoria',
+            'category_id.exists' => 'La categoría seleccionada no existe o no te pertenece',
+            'tags.array' => 'Las etiquetas deben ser un array',
+            'tags.*.exists' => 'Una o más etiquetas no existen o no te pertenecen'
         ]);
 
-        $task = Task::create([
+        $task = auth()->user()->tasks()->create([
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
             'category_id' => $validated['category_id'],
             'is_completed' => $validated['is_completed'] ?? false
         ]);
 
-        if (isset($validated['tags'])) {
+        if (!empty($validated['tags'])) {
             $task->tags()->attach($validated['tags']);
         }
 
@@ -62,7 +79,7 @@ class TaskController extends Controller
 
     /**
      * Mostrar una tarea específica
-     * GET /api/tasks/{id}
+     * GET /api/tasks/{task}
      */
     public function show(Task $task): JsonResponse
     {
@@ -76,29 +93,40 @@ class TaskController extends Controller
 
     /**
      * Actualizar una tarea
-     * PUT/PATCH /api/tasks/{id}
+     * PUT/PATCH /api/tasks/{task}
      */
     public function update(Request $request, Task $task): JsonResponse
     {
-
         $validated = $request->validate([
             'title' => 'sometimes|required|string|max:255',
             'description' => 'nullable|string',
-            'category_id' => 'sometimes|required|exists:categories,id',
+            'category_id' => [
+                'sometimes',
+                'required',
+                'integer',
+                Rule::exists('categories', 'id')->where(function ($query) {
+                    $query->where('user_id', auth()->id());
+                })
+            ],
             'tags' => 'nullable|array',
-            'tags.*' => 'exists:tags,id',
+            'tags.*' => [
+                'integer',
+                Rule::exists('tags', 'id')->where(function ($query) {
+                    $query->where('user_id', auth()->id());
+                })
+            ],
             'is_completed' => 'boolean'
+        ], [
+            'title.required' => 'El título es obligatorio',
+            'title.max' => 'El título no puede exceder 255 caracteres',
+            'category_id.exists' => 'La categoría seleccionada no existe o no te pertenece',
+            'tags.*.exists' => 'Una o más etiquetas no existen o no te pertenecen'
         ]);
 
-        $task->update([
-            'title' => $validated['title'] ?? $task->title,
-            'description' => $validated['description'] ?? $task->description,
-            'category_id' => $validated['category_id'] ?? $task->category_id,
-            'is_completed' => $validated['is_completed'] ?? $task->is_completed
-        ]);
+        $task->update($validated);
 
-        if (isset($validated['tags'])) {
-            $task->tags()->sync($validated['tags']);
+        if (array_key_exists('tags', $validated)) {
+            $task->tags()->sync($validated['tags'] ?? []);
         }
 
         $task->load(['category', 'tags']);
@@ -112,11 +140,12 @@ class TaskController extends Controller
 
     /**
      * Eliminar una tarea
-     * DELETE /api/tasks/{id}
+     * DELETE /api/tasks/{task}
      */
     public function destroy(Task $task): JsonResponse
     {
-        
+        Log::info('Eliminando tarea ID: ' . $task->id);
+
         $task->delete();
 
         return response()->json([

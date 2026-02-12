@@ -1,28 +1,26 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
+use App\Http\Controllers\Controller;
 use App\Models\Category;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\Rule;
 
 class CategoryController extends Controller
 {
     /**
-     * Listar todas las categorías
+     * Listar todas las categorías del usuario autenticado
      * GET /api/categories
      */
     public function index(): JsonResponse
     {
-
         $categories = Category::withCount('tasks')
-            ->latest() 
+            ->latest()
             ->paginate(10);
 
-        return response()->json([
-            'success' => true,
-            'data' => $categories
-        ]);
+        return response()->json($categories);
     }
 
     /**
@@ -32,10 +30,21 @@ class CategoryController extends Controller
     public function store(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name'
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('categories', 'name')->where(function ($query) {
+                    $query->where('user_id', auth()->id());
+                })
+            ]
+        ], [
+            'name.required' => 'El nombre de la categoría es obligatorio',
+            'name.unique' => 'Ya tienes una categoría con este nombre',
+            'name.max' => 'El nombre no puede exceder 255 caracteres'
         ]);
 
-        $category = Category::create($validated);
+        $category = auth()->user()->categories()->create($validated);
 
         return response()->json([
             'success' => true,
@@ -46,7 +55,7 @@ class CategoryController extends Controller
 
     /**
      * Mostrar una categoría específica
-     * GET /api/categories/{id}
+     * GET /api/categories/{category}
      */
     public function show(Category $category): JsonResponse
     {
@@ -60,12 +69,25 @@ class CategoryController extends Controller
 
     /**
      * Actualizar una categoría
-     * PUT /api/categories/{id}
+     * PUT/PATCH /api/categories/{category}
      */
     public function update(Request $request, Category $category): JsonResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name,' . $category->id
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('categories', 'name')
+                    ->where(function ($query) {
+                        $query->where('user_id', auth()->id());
+                    })
+                    ->ignore($category->id)
+            ]
+        ], [
+            'name.required' => 'El nombre de la categoría es obligatorio',
+            'name.unique' => 'Ya tienes una categoría con este nombre',
+            'name.max' => 'El nombre no puede exceder 255 caracteres'
         ]);
 
         $category->update($validated);
@@ -79,7 +101,7 @@ class CategoryController extends Controller
 
     /**
      * Eliminar una categoría
-     * DELETE /api/categories/{id}
+     * DELETE /api/categories/{category}
      */
     public function destroy(Category $category): JsonResponse
     {
